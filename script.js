@@ -13,6 +13,12 @@ const _keyPart1 = "AQ.Ab8RN6IR7CU9W";
 const _keyPart2 = "-w93y2-XdDrDWpVwCGcEryipFM5dOXyVJUrzA";
 const DEFAULT_GEMINI_KEY = _keyPart1 + _keyPart2;
 
+// Clear any old/exhausted keys if they were saved in the user's browser localStorage
+const OLD_KEY = "AIzaSyCpln8wOSDC0zgXnv6h-Iay0gAs7eHgCUk";
+if (localStorage.getItem("gemini_api_key") === OLD_KEY) {
+    localStorage.removeItem("gemini_api_key");
+}
+
 // Load key from localStorage or use the default split key
 let geminiApiKey = localStorage.getItem("gemini_api_key") || DEFAULT_GEMINI_KEY;
 
