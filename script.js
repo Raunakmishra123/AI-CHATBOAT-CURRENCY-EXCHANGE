@@ -3,7 +3,7 @@ const exchangeRateApiKey = "c9623b0e6da83f06ef1bc4d7";
 const exchangeRateApiBaseUrl = `https://v6.exchangerate-api.com/v6/${exchangeRateApiKey}`; // Base for different endpoints
 
 const geminiApiKey = "AIzaSyCpln8wOSDC0zgXnv6h-Iay0gAs7eHgCUk"; // Your Google AI key
-const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`;
+const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
 
 const supportedCurrenciesSet = new Set([ "USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "HKD", "NZD", "SEK", "KRW", "SGD", "NOK", "MXN", "INR", "RUB", "ZAR", "TRY", "BRL", "AED", "AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "AWG", "AZN", "BAM", "BBD", "BDT", "BGN", "BHD", "BIF", "BMD", "BND", "BOB", "BSD", "BTN", "BWP", "BYN", "BZD", "CDF", "CLF", "CLP", "COP", "CRC", "CUP", "CVE", "CZK", "DJF", "DKK", "DOP", "DZD", "EGP", "ERN", "ETB", "FJD", "FKP", "FOK", "GEL", "GGP", "GHS", "GIP", "GMD", "GNF", "GTQ", "GYD", "HNL", "HRK", "HTG", "HUF", "IDR", "ILS", "IMP", "IQD", "IRR", "ISK", "JEP", "JMD", "JOD", "KES", "KGS", "KHR", "KID", "KMF", "KWD", "KYD", "KZT", "LAK", "LBP", "LKR", "LRD", "LSL", "LYD", "MAD", "MDL", "MGA", "MKD", "MMK", "MNT", "MOP", "MRU", "MUR", "MVR", "MWK", "MYR", "MZN", "NAD", "NGN", "NIO", "NPR", "OMR", "PAB", "PEN", "PGK", "PHP", "PKR", "PLN", "PYG", "QAR", "RON", "RSD", "SAR", "SBD", "SCR", "SDG", "SHP", "SLE", "SLL", "SOS", "SRD", "SSP", "STN", "SYP", "SZL", "THB", "TJS", "TMT", "TND", "TOP", "TTD", "TWD", "TZS", "UAH", "UGX", "UYU", "UZS", "VES", "VND", "VUV", "WST", "XAF", "XCD", "XDR", "XOF", "XPF", "YER", "ZMW", "ZWL" ]);
 const commonCurrencies = Array.from(supportedCurrenciesSet).sort();
@@ -105,8 +105,8 @@ function clearChat() {
 function toggleQuickConverter() {
     if (!quickConverterSection || !toggleConverterButton) return;
     quickConverterSection.classList.toggle('visible');
-    toggleConverterButton.textContent = quickConverterSection.classList.contains('visible') ? 'Hide Quick Check Tool' : 'Show Quick Check Tool';
-    toggleConverterButton.title = quickConverterSection.classList.contains('visible') ? 'Hide Quick Check Tool' : 'Show Quick Check Tool';
+    toggleConverterButton.textContent = quickConverterSection.classList.contains('visible') ? '⚡ Hide Quick Converter' : '⚡ Show Quick Converter';
+    toggleConverterButton.title = quickConverterSection.classList.contains('visible') ? 'Hide Quick Converter' : 'Show Quick Converter';
 }
 
 function clearInfoPanels() {
