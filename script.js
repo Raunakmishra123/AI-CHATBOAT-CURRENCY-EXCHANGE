@@ -3,7 +3,20 @@ const exchangeRateApiKey = "c9623b0e6da83f06ef1bc4d7";
 const exchangeRateApiBaseUrl = `https://v6.exchangerate-api.com/v6/${exchangeRateApiKey}`; // Base for different endpoints
 
 const geminiApiKey = "AIzaSyCpln8wOSDC0zgXnv6h-Iay0gAs7eHgCUk"; // Your Google AI key
-const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
+
+// Model fallback chain — tries each until one works
+const GEMINI_MODELS = [
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-002",
+    "gemini-pro"
+];
+
+function getGeminiUrl(model) {
+    return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`;
+}
+
+let activeModel = GEMINI_MODELS[0]; // starts with best model
 
 const supportedCurrenciesSet = new Set([ "USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "HKD", "NZD", "SEK", "KRW", "SGD", "NOK", "MXN", "INR", "RUB", "ZAR", "TRY", "BRL", "AED", "AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "AWG", "AZN", "BAM", "BBD", "BDT", "BGN", "BHD", "BIF", "BMD", "BND", "BOB", "BSD", "BTN", "BWP", "BYN", "BZD", "CDF", "CLF", "CLP", "COP", "CRC", "CUP", "CVE", "CZK", "DJF", "DKK", "DOP", "DZD", "EGP", "ERN", "ETB", "FJD", "FKP", "FOK", "GEL", "GGP", "GHS", "GIP", "GMD", "GNF", "GTQ", "GYD", "HNL", "HRK", "HTG", "HUF", "IDR", "ILS", "IMP", "IQD", "IRR", "ISK", "JEP", "JMD", "JOD", "KES", "KGS", "KHR", "KID", "KMF", "KWD", "KYD", "KZT", "LAK", "LBP", "LKR", "LRD", "LSL", "LYD", "MAD", "MDL", "MGA", "MKD", "MMK", "MNT", "MOP", "MRU", "MUR", "MVR", "MWK", "MYR", "MZN", "NAD", "NGN", "NIO", "NPR", "OMR", "PAB", "PEN", "PGK", "PHP", "PKR", "PLN", "PYG", "QAR", "RON", "RSD", "SAR", "SBD", "SCR", "SDG", "SHP", "SLE", "SLL", "SOS", "SRD", "SSP", "STN", "SYP", "SZL", "THB", "TJS", "TMT", "TND", "TOP", "TTD", "TWD", "TZS", "UAH", "UGX", "UYU", "UZS", "VES", "VND", "VUV", "WST", "XAF", "XCD", "XDR", "XOF", "XPF", "YER", "ZMW", "ZWL" ]);
 const commonCurrencies = Array.from(supportedCurrenciesSet).sort();
@@ -276,24 +289,79 @@ async function handleUserInput() {
 
 
 
-async function getRawAIResponse(prompt) {
-    
-    const safetyThreshold = "BLOCK_MEDIUM_AND_ABOVE"; 
+async function callGeminiWithModel(prompt, model) {
+    const safetyThreshold = "BLOCK_MEDIUM_AND_ABOVE";
+    const url = getGeminiUrl(model);
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            safetySettings: [
+                { category: "HARM_CATEGORY_HARASSMENT",        threshold: safetyThreshold },
+                { category: "HARM_CATEGORY_HATE_SPEECH",       threshold: safetyThreshold },
+                { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: safetyThreshold },
+                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: safetyThreshold }
+            ],
+            generationConfig: { temperature: 0.7 }
+        })
+    });
 
-    if (!geminiApiKey) throw new Error("AI API key is missing.");
-    try {
-        const response = await fetch(geminiApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: safetyThreshold }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: safetyThreshold }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: safetyThreshold }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: safetyThreshold } ], generationConfig: { temperature: 0.7 } // Increased temperature slightly for more varied chat
-         }), });
-        if (!response.ok) { const errorData = await response.json(); console.error("Gemini API Error Response:", errorData); throw new Error(`AI API Error (${response.status}): ${errorData.error?.message || 'Unknown AI error'}`); }
-        const data = await response.json();
-        if (data.promptFeedback?.blockReason) { throw new Error(`AI request blocked by safety filters: ${data.promptFeedback.blockReason}`); }
-        if (!data.candidates?.[0]?.content?.parts?.[0]?.text) { const finishReason = data.candidates?.[0]?.finishReason; if (finishReason && finishReason !== 'STOP') { throw new Error(`AI generation stopped unexpectedly (Reason: ${finishReason}).`); } throw new Error("AI returned an empty or invalid response."); }
-        return data.candidates[0].content.parts[0].text.trim();
-    } catch (error) {
-        console.error("Error calling Gemini AI:", error);
-        if (error instanceof Error && error.message.includes('AI API Error')) throw error;
-        throw new Error(`Failed to get response from AI. (${error.message})`);
+    if (!response.ok) {
+        const errorData = await response.json();
+        const msg = errorData.error?.message || 'Unknown AI error';
+        const err = new Error(`AI API Error (${response.status}): ${msg}`);
+        err.status = response.status;
+        throw err;
     }
+
+    const data = await response.json();
+    if (data.promptFeedback?.blockReason) {
+        throw new Error(`AI request blocked by safety filters: ${data.promptFeedback.blockReason}`);
+    }
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+        const finishReason = data.candidates?.[0]?.finishReason;
+        if (finishReason && finishReason !== 'STOP') {
+            throw new Error(`AI generation stopped unexpectedly (Reason: ${finishReason}).`);
+        }
+        throw new Error("AI returned an empty or invalid response.");
+    }
+    return data.candidates[0].content.parts[0].text.trim();
+}
+
+async function getRawAIResponse(prompt) {
+    if (!geminiApiKey) throw new Error("AI API key is missing.");
+
+    // Try the active model first, then fall through the list
+    const modelsToTry = [
+        activeModel,
+        ...GEMINI_MODELS.filter(m => m !== activeModel)
+    ];
+
+    let lastError;
+    for (const model of modelsToTry) {
+        try {
+            console.log(`Trying Gemini model: ${model}`);
+            const result = await callGeminiWithModel(prompt, model);
+            // If this model worked and it differs from active, update active model
+            if (model !== activeModel) {
+                console.log(`Switched to working model: ${model}`);
+                activeModel = model;
+            }
+            return result;
+        } catch (error) {
+            console.warn(`Model ${model} failed:`, error.message);
+            // Only skip to next model on 404 (model not found) or 400 errors
+            if (error.status === 404 || error.status === 400) {
+                lastError = error;
+                continue;
+            }
+            // For other errors (auth, rate limit, etc.) throw immediately
+            throw error;
+        }
+    }
+
+    throw lastError || new Error("All Gemini models failed. Please check your API key.");
 }
 
 
