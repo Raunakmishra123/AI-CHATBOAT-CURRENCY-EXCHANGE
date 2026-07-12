@@ -7,98 +7,183 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>AI Currency Converter — Powered by Gemini</title>
-    <meta name="description" content="An AI-powered currency converter chatbot using Google Gemini 2.0 Flash and live exchange rates. Ask naturally and get instant results.">
-
+    <meta name="description" content="A smart currency converter with AI chat support. Instantly convert currencies using live rates or chat with Gemini AI.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
+    <div class="app-wrapper">
 
-        <!-- ===== LEFT: CHAT PANEL ===== -->
-        <div class="left-panel">
-            <div class="chat-container">
-
-                <div class="chat-header">
-                    <div class="chat-header-icon">💱</div>
-                    <div class="chat-header-text">
-                        <div class="chat-header-title">AI Currency Converter</div>
-                        <div class="chat-header-subtitle">Powered by Gemini 2.0 Flash · Live Exchange Rates</div>
-                    </div>
-                    <div class="status-dot" title="AI Online"></div>
+        <!-- ===== HEADER ===== -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="brand-icon">💱</div>
+                <div>
+                    <div class="brand-title">CurrencyAI</div>
+                    <div class="brand-sub">Live rates · AI powered</div>
                 </div>
-
-                <div class="chat-window" id="chat-window"></div>
-
-                <div class="chat-loading-container">
-                    <div class="loading-indicator loading-dots" id="chat-loading">Thinking</div>
-                </div>
-
-                <div class="input-area">
-                    <input
-                        type="text"
-                        id="user-input"
-                        placeholder="e.g., &quot;Convert 500 USD to INR&quot; or ask anything…"
-                        autocomplete="off"
-                        spellcheck="false"
-                    >
-                    <button id="send-button" title="Send message">Send ✦</button>
-                    <button id="clear-chat-button" title="Clear chat">Clear</button>
-                </div>
-
             </div>
-        </div>
-
-        <!-- ===== RIGHT: INFO PANEL ===== -->
-        <div class="right-panel">
-
-            <div class="info-section" id="result-display">
-                <h3><span class="section-icon">✦</span> Latest Result</h3>
-                <p id="result-content">N/A</p>
-            </div>
-
-            <div class="info-section" id="formula-display">
-                <h3><span class="section-icon">∫</span> Formula Used</h3>
-                <p id="formula-content">N/A</p>
-            </div>
-
-            <div class="info-section" id="rate-display">
-                <h3><span class="section-icon">⟳</span> Current Rate</h3>
-                <p id="rate-content">N/A</p>
-            </div>
-
-            <div class="quick-converter-container">
-                <button id="toggle-converter-button" title="Toggle Quick Check Tool">
-                    ⚡ Show Quick Converter
+            <!-- Mode Toggle -->
+            <div class="mode-toggle" role="tablist">
+                <button class="mode-btn active" id="mode-btn-converter" role="tab" aria-selected="true" onclick="switchMode('converter')">
+                    <span>💱</span> Currency Exchange
                 </button>
-                <div class="quick-converter" id="quick-converter-section">
-                    <h2>⚡ Quick Converter</h2>
-                    <div class="converter-form">
-                        <div>
-                            <label for="amount-input">Amount</label>
-                            <input type="number" id="amount-input" placeholder="1.00" min="0" step="any" value="1">
+                <button class="mode-btn" id="mode-btn-chat" role="tab" aria-selected="false" onclick="switchMode('chat')">
+                    <span>🤖</span> AI Chat
+                </button>
+            </div>
+            <div class="status-pill">
+                <span class="dot"></span> Live
+            </div>
+        </header>
+
+        <!-- ===== CURRENCY EXCHANGE MODE (default) ===== -->
+        <div class="mode-panel" id="panel-converter">
+
+            <div class="converter-container">
+
+                <!-- Main Converter Card -->
+                <div class="converter-card">
+                    <h1 class="converter-title">Currency Converter</h1>
+                    <p class="converter-sub">Real-time exchange rates · 170+ currencies</p>
+
+                    <div class="converter-row">
+                        <div class="field-group">
+                            <label for="conv-amount">Amount</label>
+                            <input type="number" id="conv-amount" value="1" min="0" step="any" placeholder="Enter amount">
                         </div>
-                        <div>
-                            <label for="from-currency">From</label>
-                            <select id="from-currency"></select>
+                    </div>
+
+                    <div class="currency-selectors">
+                        <div class="field-group">
+                            <label for="conv-from">From</label>
+                            <select id="conv-from"></select>
                         </div>
-                        <div>
-                            <label for="to-currency">To</label>
-                            <select id="to-currency"></select>
+
+                        <button class="swap-btn" id="swap-btn" title="Swap currencies">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/>
+                            </svg>
+                        </button>
+
+                        <div class="field-group">
+                            <label for="conv-to">To</label>
+                            <select id="conv-to"></select>
                         </div>
-                        <div class="loading-indicator" id="converter-loading">Fetching rates…</div>
-                        <div id="converter-error"></div>
-                        <button id="convert-button">Convert Now →</button>
-                        <div id="conversion-result">Result will appear here</div>
+                    </div>
+
+                    <button class="convert-hero-btn" id="conv-btn">
+                        Convert Now
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+
+                    <div class="conv-loading" id="conv-loading" style="display:none">Fetching live rate…</div>
+                    <div class="conv-error" id="conv-error"></div>
+                </div>
+
+                <!-- Result Card -->
+                <div class="result-card" id="result-card" style="display:none">
+                    <div class="result-amount" id="result-amount">—</div>
+                    <div class="result-label" id="result-label"></div>
+                    <div class="result-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Exchange Rate</span>
+                            <span class="meta-value" id="result-rate">—</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Inverse Rate</span>
+                            <span class="meta-value" id="result-inverse">—</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Formula</span>
+                            <span class="meta-value" id="result-formula">—</span>
+                        </div>
+                    </div>
+                    <div class="result-note">⚡ Powered by live ExchangeRate API · No AI required</div>
+                </div>
+
+                <!-- Popular Pairs -->
+                <div class="popular-card">
+                    <h3 class="popular-title">Popular Pairs</h3>
+                    <div class="popular-grid" id="popular-grid">
+                        <!-- populated by JS -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ===== AI CHAT MODE ===== -->
+        <div class="mode-panel hidden" id="panel-chat">
+            <div class="chat-layout">
+
+                <!-- Chat Panel -->
+                <div class="chat-panel">
+                    <div class="chat-topbar">
+                        <div class="chat-avatar">🤖</div>
+                        <div>
+                            <div class="chat-name">Gemini AI Assistant</div>
+                            <div class="chat-hint">Ask me anything — currency conversions, exchange rates, or general questions</div>
+                        </div>
+                    </div>
+
+                    <div class="chat-window" id="chat-window"></div>
+
+                    <div class="chat-loading-bar" id="chat-loading-bar" style="display:none">
+                        <div class="typing-dots"><span></span><span></span><span></span></div>
+                        <span id="chat-loading-text">Thinking…</span>
+                    </div>
+
+                    <div class="chat-input-row">
+                        <input type="text" id="user-input" placeholder='e.g. "Convert 500 USD to INR" or ask anything…' autocomplete="off">
+                        <button id="send-button" title="Send">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
+                        <button id="clear-chat-button" title="Clear chat">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Info Sidebar -->
+                <div class="chat-sidebar">
+                    <div class="sidebar-card" id="s-key">
+                        <div class="sidebar-icon">🔑</div>
+                        <div class="sidebar-label">Gemini API Key</div>
+                        <div class="api-key-group">
+                            <input type="password" id="gemini-key-input" placeholder="Paste Gemini API Key..." autocomplete="off">
+                            <button id="save-key-btn" title="Save key">Save</button>
+                        </div>
+                        <div class="sidebar-hint" style="margin-top:8px;padding:0;background:transparent;border:none;text-align:left">
+                            Saved securely in your browser. <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--blue);text-decoration:underline">Get a free key</a>
+                        </div>
+                    </div>
+                    <div class="sidebar-card" id="s-result">
+                        <div class="sidebar-icon">✦</div>
+                        <div class="sidebar-label">Result</div>
+                        <div class="sidebar-value" id="result-content">—</div>
+                    </div>
+                    <div class="sidebar-card" id="s-formula">
+                        <div class="sidebar-icon">∫</div>
+                        <div class="sidebar-label">Formula</div>
+                        <div class="sidebar-value" id="formula-content">—</div>
+                    </div>
+                    <div class="sidebar-card" id="s-rate">
+                        <div class="sidebar-icon">⟳</div>
+                        <div class="sidebar-label">Rate</div>
+                        <div class="sidebar-value" id="rate-content">—</div>
+                    </div>
+                    <div class="sidebar-hint">
+                        💡 The AI uses live exchange rates for currency queries, and Gemini for general questions.
                     </div>
                 </div>
             </div>
-
         </div>
-    </div>
 
-    <script src="script.js?v=5" defer></script>
+    </div><!-- /app-wrapper -->
+
+    <script src="script.js?v=6" defer></script>
 </body>
 </html>
