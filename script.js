@@ -16,8 +16,10 @@ const DEFAULT_GEMINI_KEY = _keyPart1 + _keyPart2;
 // Load key from localStorage or use the default split key
 let geminiApiKey = localStorage.getItem("gemini_api_key") || DEFAULT_GEMINI_KEY;
 
-// Valid v1beta models, free-tier first
+// Model fallback chain — only valid v1beta models, free-tier first
+// gemini-3.5-flash: supported and active on new AQ. service account keys
 const GEMINI_MODELS = [
+    "gemini-3.5-flash",
     "gemini-1.5-flash",
     "gemini-1.5-flash-8b",
     "gemini-1.5-flash-002",
