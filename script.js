@@ -4,11 +4,13 @@ const exchangeRateApiBaseUrl = `https://v6.exchangerate-api.com/v6/${exchangeRat
 
 const geminiApiKey = "AIzaSyCpln8wOSDC0zgXnv6h-Iay0gAs7eHgCUk"; // Your Google AI key
 
-// Model fallback chain — tries each until one works
+// Model fallback chain — free-tier friendly models listed first
+// gemini-1.5-flash: 15 RPM, 1500 req/day on free tier
 const GEMINI_MODELS = [
-    "gemini-2.0-flash",
     "gemini-1.5-flash",
     "gemini-1.5-flash-002",
+    "gemini-2.0-flash-lite",
+    "gemini-2.0-flash",
     "gemini-pro"
 ];
 
@@ -16,7 +18,7 @@ function getGeminiUrl(model) {
     return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`;
 }
 
-let activeModel = GEMINI_MODELS[0]; // starts with best model
+let activeModel = GEMINI_MODELS[0]; // starts with best free-tier model
 
 const supportedCurrenciesSet = new Set([ "USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "HKD", "NZD", "SEK", "KRW", "SGD", "NOK", "MXN", "INR", "RUB", "ZAR", "TRY", "BRL", "AED", "AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "AWG", "AZN", "BAM", "BBD", "BDT", "BGN", "BHD", "BIF", "BMD", "BND", "BOB", "BSD", "BTN", "BWP", "BYN", "BZD", "CDF", "CLF", "CLP", "COP", "CRC", "CUP", "CVE", "CZK", "DJF", "DKK", "DOP", "DZD", "EGP", "ERN", "ETB", "FJD", "FKP", "FOK", "GEL", "GGP", "GHS", "GIP", "GMD", "GNF", "GTQ", "GYD", "HNL", "HRK", "HTG", "HUF", "IDR", "ILS", "IMP", "IQD", "IRR", "ISK", "JEP", "JMD", "JOD", "KES", "KGS", "KHR", "KID", "KMF", "KWD", "KYD", "KZT", "LAK", "LBP", "LKR", "LRD", "LSL", "LYD", "MAD", "MDL", "MGA", "MKD", "MMK", "MNT", "MOP", "MRU", "MUR", "MVR", "MWK", "MYR", "MZN", "NAD", "NGN", "NIO", "NPR", "OMR", "PAB", "PEN", "PGK", "PHP", "PKR", "PLN", "PYG", "QAR", "RON", "RSD", "SAR", "SBD", "SCR", "SDG", "SHP", "SLE", "SLL", "SOS", "SRD", "SSP", "STN", "SYP", "SZL", "THB", "TJS", "TMT", "TND", "TOP", "TTD", "TWD", "TZS", "UAH", "UGX", "UYU", "UZS", "VES", "VND", "VUV", "WST", "XAF", "XCD", "XDR", "XOF", "XPF", "YER", "ZMW", "ZWL" ]);
 const commonCurrencies = Array.from(supportedCurrenciesSet).sort();
@@ -351,12 +353,12 @@ async function getRawAIResponse(prompt) {
             return result;
         } catch (error) {
             console.warn(`Model ${model} failed:`, error.message);
-            // Only skip to next model on 404 (model not found) or 400 errors
-            if (error.status === 404 || error.status === 400) {
+            // Skip to next model on: 404 (not found), 400 (bad request), 429 (quota exceeded)
+            if (error.status === 404 || error.status === 400 || error.status === 429) {
                 lastError = error;
                 continue;
             }
-            // For other errors (auth, rate limit, etc.) throw immediately
+            // For other errors (auth 401/403, server 5xx) throw immediately
             throw error;
         }
     }
