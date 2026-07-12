@@ -4,14 +4,15 @@ const exchangeRateApiBaseUrl = `https://v6.exchangerate-api.com/v6/${exchangeRat
 
 const geminiApiKey = "AIzaSyCpln8wOSDC0zgXnv6h-Iay0gAs7eHgCUk"; // Your Google AI key
 
-// Model fallback chain — free-tier friendly models listed first
-// gemini-1.5-flash: 15 RPM, 1500 req/day on free tier
+// Model fallback chain — only valid v1beta models, free-tier first
+// gemini-1.5-flash: 15 RPM, 1500 req/day free | gemini-1.5-flash-8b: lightest free model
 const GEMINI_MODELS = [
     "gemini-1.5-flash",
+    "gemini-1.5-flash-8b",
     "gemini-1.5-flash-002",
+    "gemini-1.5-pro",
     "gemini-2.0-flash-lite",
-    "gemini-2.0-flash",
-    "gemini-pro"
+    "gemini-2.0-flash"
 ];
 
 function getGeminiUrl(model) {
@@ -363,7 +364,16 @@ async function getRawAIResponse(prompt) {
         }
     }
 
-    throw lastError || new Error("All Gemini models failed. Please check your API key.");
+    // All models exhausted — show a helpful message
+    const isQuotaError = lastError?.status === 429;
+    if (isQuotaError) {
+        throw new Error(
+            "Your Gemini API key has exceeded its free daily quota (1500 requests/day). " +
+            "Please get a new free API key at https://aistudio.google.com/app/apikey and update it in script.js. " +
+            "Quota resets daily at midnight Pacific Time."
+        );
+    }
+    throw lastError || new Error("All Gemini models failed. Please check your API key at https://aistudio.google.com/app/apikey");
 }
 
 
