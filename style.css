@@ -406,23 +406,8 @@ button:disabled{opacity:.4;cursor:not-allowed;transform:none !important}
   background:linear-gradient(to right,var(--blue),var(--purple))}
 #s-formula::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
   background:linear-gradient(to right,var(--orange),var(--pink))}
-#s-key::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(to right,var(--green),var(--blue))}
 #s-result::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
   background:linear-gradient(to right,var(--blue),var(--purple))}
-.api-key-group{display:flex;gap:6px;margin-top:8px}
-.api-key-group input{
-  flex:1;padding:8px 12px;background:var(--bg-input);border:1px solid var(--border);
-  border-radius:var(--r-sm);color:var(--text);font-size:.8rem;transition:var(--t);
-}
-.api-key-group input:focus{border-color:var(--border-focus);background:rgba(99,179,237,.06)}
-.api-key-group button{
-  padding:8px 14px;border:none;border-radius:var(--r-sm);
-  background:var(--grad-hero);color:#fff;font-size:.8rem;font-weight:700;
-  box-shadow:0 2px 8px rgba(102,126,234,.3);transition:var(--t);
-}
-.api-key-group button:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(102,126,234,.45)}
-.api-key-group button:active{transform:translateY(0)}
 .sidebar-icon{font-size:1.1rem;margin-bottom:4px;opacity:.6}
 .sidebar-label{font-size:.65rem;font-weight:700;text-transform:uppercase;
   letter-spacing:.1em;color:var(--text3);margin-bottom:8px}

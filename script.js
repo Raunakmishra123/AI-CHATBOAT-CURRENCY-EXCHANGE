@@ -62,8 +62,7 @@ let currentMode = "converter"; // "converter" | "chat"
 let convAmount, convFrom, convTo, convBtn, convLoading, convError,
     resultCard, resultAmount, resultLabel, resultRate, resultInverse, resultFormula,
     popularGrid, chatWindow, userInput, sendButton, clearChatButton,
-    chatLoadingBar, chatLoadingText, resultContent, formulaContent, rateContent,
-    geminiKeyInput, saveKeyBtn;
+    chatLoadingBar, chatLoadingText, resultContent, formulaContent, rateContent;
 
 // =============================================================
 // INIT
@@ -73,7 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
     populateDropdowns();
     addEventListeners();
     loadPopularPairs();
-    initializeApiKeyField();
     displayBotMessage("Hello! I'm your AI assistant. Ask me about currency conversions (e.g. '500 USD to INR') or any other topic!");
 });
 
@@ -100,8 +98,6 @@ function cacheDOMRefs() {
     resultContent  = document.getElementById("result-content");
     formulaContent = document.getElementById("formula-content");
     rateContent    = document.getElementById("rate-content");
-    geminiKeyInput = document.getElementById("gemini-key-input");
-    saveKeyBtn     = document.getElementById("save-key-btn");
 }
 
 function populateDropdowns() {
@@ -128,7 +124,6 @@ function addEventListeners() {
     if (sendButton)      sendButton.addEventListener("click", handleChatInput);
     if (userInput)       userInput.addEventListener("keypress", e => { if (e.key === "Enter") handleChatInput(); });
     if (clearChatButton) clearChatButton.addEventListener("click", clearChat);
-    if (saveKeyBtn)     saveKeyBtn.addEventListener("click", saveApiKey);
 }
 
 // =============================================================
@@ -497,39 +492,6 @@ async function fetchRates(base) {
     if (data.result === "error") throw new Error(`Exchange API: ${data["error-type"] || "unknown error"}`);
     if (!data.conversion_rates) throw new Error("Invalid exchange rate data received.");
     return data;
-}
-
-// ── API KEY SETTINGS LOGIC ────────────────────────────────────
-function initializeApiKeyField() {
-    if (geminiKeyInput) {
-        const storedKey = localStorage.getItem("gemini_api_key");
-        if (storedKey) {
-            geminiKeyInput.value = storedKey;
-        } else {
-            // Fill with default key to start with
-            geminiKeyInput.value = DEFAULT_GEMINI_KEY;
-        }
-    }
-}
-
-function saveApiKey() {
-    if (!geminiKeyInput) return;
-    const newKey = geminiKeyInput.value.trim();
-    if (!newKey) {
-        alert("Please enter a valid Gemini API Key!");
-        return;
-    }
-    localStorage.setItem("gemini_api_key", newKey);
-    geminiApiKey = newKey;
-    
-    // Highlight button temporarily to show success
-    const originalText = saveKeyBtn.textContent;
-    saveKeyBtn.textContent = "Saved! ✓";
-    saveKeyBtn.style.background = "var(--green)";
-    setTimeout(() => {
-        saveKeyBtn.textContent = originalText;
-        saveKeyBtn.style.background = "";
-    }, 1500);
 }
 
 // =============================================================
